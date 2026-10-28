@@ -1,0 +1,53 @@
+# Publica la imagen multi-arch en GHCR cuando main o un tag v* se mueven.
+name: publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      # El runner es amd64; qemu deja que buildx arme tambien arm64.
+      - name: qemu
+        uses: docker/setup-qemu-action@v3
+
+      - name: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/mondoboricua/mt3k-pptp-client
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYYMMDD'}}
+            type=ref,event=tag
+
+      - name: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

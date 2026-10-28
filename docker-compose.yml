@@ -1,0 +1,26 @@
+# Contrato del cliente. ProxMenux lee este archivo para armar el catalogo.
+name: mt3k-pptp-client
+services:
+  mt3k-pptp-client:
+    image: ghcr.io/mondoboricua/mt3k-pptp-client:latest
+    container_name: mt3k-pptp-client
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/ppp:/dev/ppp
+    environment:
+      PPTP_SERVER: vpn.example.com
+      PPTP_USER: pptp-user
+      PPTP_PASS: change-me
+      PPTP_PASS_FILE: ""
+      PPTP_ROUTES: "192.0.2.0/24 198.51.100.0/24"
+      PPTP_DEFAULT_ROUTE: "false"
+      PPTP_MPPE: required
+      PPTP_MTU: "1400"
+      PPTP_PEER_NAME: mt3k-pptp
+      PPTP_RETRY_MIN: "30"
+      PPTP_RETRY_MAX: "300"
+      PPTP_DNS: "false"
+      PPTP_DEBUG: "false"
+      PPTP_NET_WAIT: "120"
+    restart: unless-stopped
